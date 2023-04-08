@@ -7,14 +7,14 @@ interface AvatarProps {
 }
 
 const Avatar: React.FC<AvatarProps> = ({src}) => {
-  console.log(src.image)
+console.log(src)
   return (
     <Image
       className="rounded-full"
       height="30"
       width="30"
       alt="Avatar"
-      src={src.image || "/images/placeholder.jpg"}
+      src={ "/images/placeholder.jpg"}
     />
   );
 };
