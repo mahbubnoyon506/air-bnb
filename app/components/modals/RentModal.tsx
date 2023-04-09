@@ -8,6 +8,8 @@ import { categories } from "../navbar/Categories";
 import { idText } from "typescript";
 import CategoryInput from "../inputs/CategoryInput";
 import { FieldValue, FieldValues, useForm } from "react-hook-form";
+import CountrySelect from "../inputs/CountrySelect";
+import dynamic from "next/dynamic";
 
 enum STEPT {
   CATEGORY = 0,
@@ -27,31 +29,39 @@ const RentModal = () => {
     handleSubmit,
     setValue,
     watch,
-    formState: {
-        errors,
-    },
-    reset
+    formState: { errors },
+    reset,
   } = useForm<FieldValues>({
-defaultValues:{
-    category:'',
-    location: null,
-    guestCount: 1,
-    roomCount: 1,
-    ImageSrc: '',
-    price: 1,
-    title: '',
-    description: ''
-}
-  })
+    defaultValues: {
+      category: "",
+      location: null,
+      guestCount: 1,
+      roomCount: 1,
+      ImageSrc: "",
+      price: 1,
+      title: "",
+      description: "",
+    },
+  });
 
-  const category = watch('category');
-  const setCustomValue =(id:string, value: any) => {
+  const category = watch("category");
+  const location = watch("location");
+
+  const Map = useMemo(
+    () =>
+      dynamic(() => import("../Map"), {
+        ssr: false,
+      }),
+    [location]
+  );
+
+  const setCustomValue = (id: string, value: any) => {
     setValue(id, value, {
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true,
-    })
-  }
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
 
   const onBack = () => {
     setStep((value) => value - 1);
@@ -82,11 +92,11 @@ defaultValues:{
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto">
         {categories.map((item) => (
           <div className="col-span-1" key={item.label}>
-            <CategoryInput 
-            onClick={(category) => setCustomValue('category', category)} 
-            label={item.label}
-            icon={item.icon}
-            selected={category === item.label}
+            <CategoryInput
+              onClick={(category) => setCustomValue("category", category)}
+              label={item.label}
+              icon={item.icon}
+              selected={category === item.label}
             />
           </div>
         ))}
@@ -94,11 +104,27 @@ defaultValues:{
     </div>
   );
 
+  if (step === STEPT.LOCATION) {
+    bodyContent = (
+      <div className="flex flex-col gap-8">
+        <Heading
+          title="Where is your place located?"
+          subtitle="Help guest find you"
+        />
+        <CountrySelect
+          value={location}
+          onChange={(value) => setCustomValue("location", value)}
+        />
+        <Map center={location?.latlng} />
+      </div>
+    );
+  }
+
   return (
     <Modal
       isOpen={rentModal.isOpen}
       onClose={rentModal.onClose}
-      onSubmit={rentModal.onClose}
+      onSubmit={onNext}
       actionLabel={actionLabel}
       secondaryActionLabel={secondaryActionLabel}
       secondaryAction={step === STEPT.CATEGORY ? undefined : onBack}
